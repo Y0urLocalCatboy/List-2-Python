@@ -3,6 +3,8 @@ class DNASequence:
         self.identifier = identifier
         self.data = data
         self.valid_chars = valid_chars
+        if not set(data).issubset(valid_chars):
+            raise ValueError('Invalid character: ' + str(set(data) - valid_chars))
     def __str__(self):
         return f'>{self.identifier}: {self.data}'
     def __len__(self):
@@ -16,7 +18,7 @@ class DNASequence:
         for i in range(len(self.data) - len(motif) + 1):
             if self.data[i:i + len(motif)] == motif:
                 positions.append(i)
-        return
+        return positions
     def complement(self):
         return DNASequence(self.identifier,
                            ''.join([{'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C'}[char] for char in self.data]),
@@ -26,22 +28,11 @@ class DNASequence:
                            self.data.replace('T', 'U'),
                            self.valid_chars)
 
-class RNASequence:
-    def __init__(self, identifier, data, valid_chars):
-        self.identifier = identifier
-        self.data = data
-        self.valid_chars = valid_chars
-    def __str__(self):
-        return f'>{self.identifier}: {self.data}'
-    def __len__(self):
-        return len(self.data)
-    def mutate(self, position, value):
-        if value not in self.valid_chars:
-            raise ValueError('Invalid character')
-        self.data = self.data[:position] + value + self.data[position + 1:]
+class RNASequence(DNASequence):
+    valid_chars = {'A', 'U', 'C', 'G'}
     def complement(self):
         return RNASequence(self.identifier,
-                           ''.join([{'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C'}[char] for char in self.data]),
+                           ''.join([{'A': 'U', 'U': 'A', 'C': 'G', 'G': 'C'}[char] for char in self.data]),
                            self.valid_chars)
     def translate(self):
         return ProteinSequence(self.identifier,
@@ -62,24 +53,7 @@ class RNASequence:
                                         'GAU': 'D', 'GAC': 'D', 'GAA': 'E', 'GAG': 'E',
                                         'GGU': 'G', 'GGC': 'G', 'GGA': 'G', 'GGG': 'G'}[self.data[i:i+3]]
                                        for i in range(0, len(self.data), 3)]),
-                               self.valid_chars)
+                               ProteinSequence.valid_chars)
 
-class ProteinSequence:
-    def __init__(self, identifier, data, valid_chars):
-        self.identifier = identifier
-        self.data = data
-        self.valid_chars = valid_chars
-    def __str__(self):
-        return f'>{self.identifier}: {self.data}'
-    def __len__(self):
-        return len(self.data)
-    def mutate(self, position, value):
-        if value not in self.valid_chars:
-            raise ValueError('Invalid character')
-        self.data = self.data[:position] + value + self.data[position + 1:]
-    def find_motif(self, motif):
-        positions = []
-        for i in range(len(self.data) - len(motif) + 1):
-            if self.data[i:i + len(motif)] == motif:
-                positions.append(i)
-        return positions
+class ProteinSequence(RNASequence):
+    valid_chars = {'A','B' 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '*'}
